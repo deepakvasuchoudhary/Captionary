@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Captionary Settings</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo">C</div>
+        <div class="brand-text">
+          <span class="app-name">Captionary</span>
+          <span class="app-tagline">Transcript & Vocabulary</span>
+        </div>
+      </div>
+      <div class="status-indicator" id="statusIndicator" title="YouTube Status">
+        <span class="status-dot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <!-- Language Settings Card -->
+    <section class="card">
+      <h3 class="card-title">Translation & Meaning</h3>
+      <div class="form-group">
+        <label for="targetLanguage">Translate Words To:</label>
+        <select id="targetLanguage" class="select-input">
+          <option value="none">No Translation (Definitions Only)</option>
+          <option value="en">English</option>
+          <option value="hi" selected>Hindi (हिन्दी)</option>
+          <option value="es">Spanish (Español)</option>
+          <option value="fr">French (Français)</option>
+          <option value="de">German (Deutsch)</option>
+          <option value="zh">Chinese (中文)</option>
+          <option value="ja">Japanese (日本語)</option>
+          <option value="ko">Korean (한국어)</option>
+          <option value="ar">Arabic (العربية)</option>
+          <option value="pt">Portuguese (Português)</option>
+          <option value="ru">Russian (Русский)</option>
+          <option value="it">Italian (Italiano)</option>
+          <option value="tr">Turkish (Türkçe)</option>
+          <option value="vi">Vietnamese (Tiếng Việt)</option>
+          <option value="bn">Bengali (বাংলা)</option>
+          <option value="ur">Urdu (اردو)</option>
+          <option value="id">Indonesian (Bahasa Indonesia)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Playback & Behavior Settings Card -->
+    <section class="card">
+      <h3 class="card-title">Preferences</h3>
+      
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <span class="toggle-label">Auto-Scroll with Video</span>
+          <span class="toggle-sub">Follow current spoken line automatically</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoScroll" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-group">
+        <div class="toggle-info">
+          <span class="toggle-label">Auto-Pronounce on Click</span>
+          <span class="toggle-sub">Speak word aloud when definition opens</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="autoPronounce" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="form-group" style="margin-top: 10px;">
+        <label for="fontSize">Transcript Text Size:</label>
+        <select id="fontSize" class="select-input">
+          <option value="small">Compact (12px)</option>
+          <option value="medium" selected>Standard (13px)</option>
+          <option value="large">Comfortable (15px)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Vocabulary Statistics Card -->
+    <section class="card">
+      <div class="vocab-header">
+        <h3 class="card-title" style="margin-bottom: 0;">Vocabulary Bank</h3>
+        <span class="badge" id="savedCountBadge">0 words</span>
+      </div>
+      <p class="card-description">
+        Star words in the transcript to save them here for review and flashcard study.
+      </p>
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="exportCsvBtn">
+          📥 Export CSV (Anki)
+        </button>
+        <button class="btn btn-secondary" id="clearVocabBtn">
+          🗑️ Clear All
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>💡 Tip: Click any word in the transcript on YouTube to see its meaning.</span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

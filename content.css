@@ -1,0 +1,719 @@
+/* ==========================================================================
+   Captionary - YouTube Native Aligned Transcript & Vocabulary Styling
+   Designed to seamlessly blend into YouTube (both Dark and Light modes)
+   ========================================================================== */
+
+/* Dark Mode Defaults (YouTube standard dark) */
+:root,
+#captionary-panel,
+#lt-definition-popover {
+  --yt-trans-bg: #0f0f0f;
+  --yt-trans-surface: #1f1f1f;
+  --yt-trans-elevated: #282828;
+  --yt-trans-border: rgba(255, 255, 255, 0.12);
+  --yt-trans-text-primary: #f1f1f1;
+  --yt-trans-text-secondary: #aaaaaa;
+  --yt-trans-text-muted: #717171;
+  --yt-trans-accent: #3ea6ff;
+  --yt-trans-accent-hover: #65b8ff;
+  --yt-trans-chip-bg: rgba(255, 255, 255, 0.1);
+  --yt-trans-chip-hover: rgba(255, 255, 255, 0.2);
+  --yt-trans-chip-active-bg: #f1f1f1;
+  --yt-trans-chip-active-text: #0f0f0f;
+  --yt-trans-row-hover: rgba(255, 255, 255, 0.08);
+  --yt-trans-row-active: rgba(255, 255, 255, 0.12);
+  --yt-trans-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --yt-trans-popover-bg: #212121;
+}
+
+/* Light Mode Overrides (YouTube standard light) */
+html:not([dark]),
+html[light],
+html:not([dark]) #captionary-panel,
+html:not([dark]) #lt-definition-popover {
+  --yt-trans-bg: #ffffff;
+  --yt-trans-surface: #f9f9f9;
+  --yt-trans-elevated: #f2f2f2;
+  --yt-trans-border: rgba(0, 0, 0, 0.1);
+  --yt-trans-text-primary: #0f0f0f;
+  --yt-trans-text-secondary: #606060;
+  --yt-trans-text-muted: #909090;
+  --yt-trans-accent: #065fd4;
+  --yt-trans-accent-hover: #1a73e8;
+  --yt-trans-chip-bg: rgba(0, 0, 0, 0.05);
+  --yt-trans-chip-hover: rgba(0, 0, 0, 0.1);
+  --yt-trans-chip-active-bg: #0f0f0f;
+  --yt-trans-chip-active-text: #ffffff;
+  --yt-trans-row-hover: rgba(0, 0, 0, 0.04);
+  --yt-trans-row-active: rgba(0, 0, 0, 0.08);
+  --yt-trans-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  --yt-trans-popover-bg: #ffffff;
+}
+
+/* Main Container in YouTube #secondary column */
+#captionary-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--yt-trans-bg);
+  border: 1px solid var(--yt-trans-border);
+  border-radius: 12px;
+  font-family: "Roboto", "YouTube Sans", "YouTube Noto", Arial, sans-serif;
+  color: var(--yt-trans-text-primary);
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.2s ease;
+  z-index: 50;
+}
+
+#captionary-panel.lt-collapsed {
+  height: 48px !important;
+}
+
+#captionary-panel.lt-collapsed .lt-header-chips,
+#captionary-panel.lt-collapsed .lt-search-bar,
+#captionary-panel.lt-collapsed .lt-content-area {
+  display: none !important;
+}
+
+/* Header (Identical to YouTube native drawers/panels) */
+.lt-header {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px 8px;
+  user-select: none;
+  border-bottom: 1px solid var(--yt-trans-border);
+  background: var(--yt-trans-bg);
+}
+
+.lt-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+}
+
+.lt-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lt-main-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  letter-spacing: -0.1px;
+  color: var(--yt-trans-text-primary);
+}
+
+.lt-track-badge {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--yt-trans-text-secondary);
+  background: var(--yt-trans-chip-bg);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.lt-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* YouTube Style Circular Icon Button */
+.lt-yt-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--yt-trans-text-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 14px;
+  outline: none;
+}
+
+.lt-yt-icon-btn:hover {
+  background: var(--yt-trans-chip-bg);
+}
+
+.lt-yt-icon-btn.lt-active {
+  color: var(--yt-trans-accent);
+  background: var(--yt-trans-chip-hover);
+}
+
+/* YouTube Style Chips Navigation */
+.lt-header-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.lt-yt-chip {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: var(--yt-trans-chip-bg);
+  color: var(--yt-trans-text-primary);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+  white-space: nowrap;
+}
+
+.lt-yt-chip:hover {
+  background: var(--yt-trans-chip-hover);
+}
+
+.lt-yt-chip.lt-active {
+  background: var(--yt-trans-chip-active-bg);
+  color: var(--yt-trans-chip-active-text);
+  font-weight: 600;
+}
+
+.lt-track-select {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--yt-trans-chip-bg);
+  color: var(--yt-trans-text-primary);
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  max-width: 140px;
+}
+
+/* Search Bar (YouTube Input Style) */
+.lt-search-bar {
+  display: none;
+  align-items: center;
+  position: relative;
+  margin-top: 10px;
+}
+
+.lt-search-bar.lt-show {
+  display: flex;
+}
+
+.lt-search-input {
+  width: 100%;
+  height: 34px;
+  background: var(--yt-trans-surface);
+  border: 1px solid var(--yt-trans-border);
+  border-radius: 8px;
+  padding: 0 32px 0 32px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--yt-trans-text-primary);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.lt-search-input:focus {
+  border-color: var(--yt-trans-accent);
+}
+
+.lt-search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 13px;
+  color: var(--yt-trans-text-muted);
+  pointer-events: none;
+}
+
+.lt-search-clear {
+  position: absolute;
+  right: 10px;
+  font-size: 13px;
+  color: var(--yt-trans-text-muted);
+  cursor: pointer;
+}
+
+/* Content / Scroll Area */
+.lt-content-area {
+  max-height: 480px;
+  min-height: 200px;
+  overflow-y: auto;
+  padding: 6px 8px;
+  scroll-behavior: smooth;
+  background: var(--yt-trans-bg);
+}
+
+/* YouTube Thin Scrollbar */
+.lt-content-area::-webkit-scrollbar {
+  width: 8px;
+}
+.lt-content-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.lt-content-area::-webkit-scrollbar-thumb {
+  background: var(--yt-trans-chip-hover);
+  border-radius: 4px;
+}
+.lt-content-area::-webkit-scrollbar-thumb:hover {
+  background: var(--yt-trans-text-muted);
+}
+
+/* Transcript Row (Exact YouTube Native Transcript Row Style) */
+.lt-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.12s ease;
+  line-height: 20px;
+}
+
+.lt-row:hover {
+  background: var(--yt-trans-row-hover);
+}
+
+.lt-row.lt-row-active {
+  background: var(--yt-trans-row-active);
+}
+
+.lt-row.lt-row-active .lt-timestamp {
+  font-weight: 700;
+}
+
+.lt-row.lt-row-active .lt-sentence {
+  color: var(--yt-trans-text-primary);
+}
+
+/* Timestamp (YouTube Blue) */
+.lt-timestamp {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--yt-trans-accent);
+  cursor: pointer;
+  user-select: none;
+  min-width: 44px;
+  letter-spacing: -0.2px;
+}
+
+.lt-timestamp:hover {
+  text-decoration: underline;
+}
+
+/* Spoken Sentence and Clickable Words */
+.lt-sentence {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--yt-trans-text-secondary);
+  flex: 1;
+}
+
+.lt-word {
+  display: inline;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0 1px;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+
+.lt-word:hover {
+  text-decoration: underline;
+  color: var(--yt-trans-accent) !important;
+}
+
+.lt-word.lt-word-selected {
+  background: var(--yt-trans-accent);
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.lt-word-match {
+  background: rgba(255, 215, 0, 0.4) !important;
+  color: var(--yt-trans-text-primary) !important;
+  font-weight: 600;
+}
+
+/* Empty & Loading States */
+.lt-empty-state,
+.lt-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--yt-trans-text-secondary);
+}
+
+.lt-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--yt-trans-border);
+  border-top-color: var(--yt-trans-accent);
+  border-radius: 50%;
+  animation: lt-spin 0.8s linear infinite;
+  margin-bottom: 14px;
+}
+
+@keyframes lt-spin {
+  to { transform: rotate(360deg); }
+}
+
+.lt-retry-btn {
+  margin-top: 14px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  background: var(--yt-trans-chip-bg);
+  border: 1px solid var(--yt-trans-border);
+  color: var(--yt-trans-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.lt-retry-btn:hover {
+  background: var(--yt-trans-chip-hover);
+}
+
+/* ==========================================================================
+   Floating Definition Popover (YouTube Menu/Popup Card)
+   ========================================================================== */
+#lt-definition-popover {
+  position: fixed;
+  z-index: 2147483647;
+  width: 330px;
+  background: #212121;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: "Roboto", "YouTube Sans", Arial, sans-serif;
+  color: #f1f1f1;
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+html:not([dark]) #lt-definition-popover,
+html[light] #lt-definition-popover {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  color: #0f0f0f;
+}
+
+#lt-definition-popover.lt-popover-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.lt-pop-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+html:not([dark]) .lt-pop-head,
+html[light] .lt-pop-head {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.lt-pop-word {
+  font-size: 18px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.lt-pop-phonetic {
+  font-size: 13px;
+  color: #3ea6ff;
+  font-family: inherit;
+}
+
+html:not([dark]) .lt-pop-phonetic,
+html[light] .lt-pop-phonetic {
+  color: #065fd4;
+}
+
+.lt-pop-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lt-pop-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: inherit;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 13px;
+}
+
+html:not([dark]) .lt-pop-btn,
+html[light] .lt-pop-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.lt-pop-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lt-pop-btn.lt-starred {
+  color: #ffb800 !important;
+}
+
+.lt-pop-translation {
+  background: rgba(62, 166, 255, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+html:not([dark]) .lt-pop-translation,
+html[light] .lt-pop-translation {
+  background: rgba(6, 95, 212, 0.08);
+}
+
+.lt-pop-translation-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #3ea6ff;
+}
+
+html:not([dark]) .lt-pop-translation-label,
+html[light] .lt-pop-translation-label {
+  color: #065fd4;
+}
+
+.lt-pop-translation-text {
+  font-weight: 600;
+}
+
+.lt-pop-body {
+  max-height: 210px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.lt-pop-pos-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #3ea6ff;
+  background: rgba(62, 166, 255, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+html:not([dark]) .lt-pop-pos-badge,
+html[light] .lt-pop-pos-badge {
+  color: #065fd4;
+  background: rgba(6, 95, 212, 0.08);
+}
+
+.lt-pop-def-item {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #aaaaaa;
+  margin-bottom: 6px;
+  padding-left: 8px;
+  border-left: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+html:not([dark]) .lt-pop-def-item,
+html[light] .lt-pop-def-item {
+  color: #555555;
+  border-left-color: rgba(0, 0, 0, 0.15);
+}
+
+.lt-pop-example {
+  display: block;
+  font-style: italic;
+  font-size: 12px;
+  color: #717171;
+  margin-top: 2px;
+}
+
+.lt-pop-footer {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #717171;
+}
+
+html:not([dark]) .lt-pop-footer,
+html[light] .lt-pop-footer {
+  border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Saved Words / Vocabulary Bank View
+   ========================================================================== */
+.lt-vocab-list {
+  padding: 6px 8px;
+}
+
+.lt-vocab-item {
+  background: var(--yt-trans-surface);
+  border: 1px solid var(--yt-trans-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lt-vocab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lt-vocab-word {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--yt-trans-text-primary);
+}
+
+.lt-vocab-def {
+  font-size: 13px;
+  color: var(--yt-trans-text-secondary);
+  line-height: 1.4;
+}
+
+.lt-vocab-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--yt-trans-text-muted);
+  margin-top: 4px;
+}
+
+.lt-vocab-jump {
+  color: var(--yt-trans-accent);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.lt-vocab-jump:hover {
+  text-decoration: underline;
+}
+
+.lt-vocab-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.lt-btn-sm {
+  background: var(--yt-trans-chip-bg);
+  border: none;
+  color: var(--yt-trans-text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.lt-btn-sm:hover {
+  background: var(--yt-trans-chip-hover);
+}
+
+.lt-trans-shimmer {
+  display: inline-block;
+  opacity: 0.6;
+  font-style: italic;
+  font-weight: 400;
+  animation: lt-shimmer-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes lt-shimmer-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+/* Skeleton Definition Placeholder */
+.lt-pop-skeleton {
+  padding: 6px 0;
+}
+
+.lt-skeleton-bar {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.07) 25%, rgba(255, 255, 255, 0.16) 50%, rgba(255, 255, 255, 0.07) 75%);
+  background-size: 200% 100%;
+  animation: lt-skeleton-shimmer 1.4s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
+html:not([dark]) .lt-skeleton-bar,
+html[light] .lt-skeleton-bar {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 25%, rgba(0, 0, 0, 0.12) 50%, rgba(0, 0, 0, 0.05) 75%);
+  background-size: 200% 100%;
+}
+
+@keyframes lt-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.lt-mini-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(62, 166, 255, 0.3);
+  border-top-color: #3ea6ff;
+  border-radius: 50%;
+  animation: lt-spin 0.6s linear infinite;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.lt-def-num {
+  font-weight: 700;
+  color: var(--yt-trans-accent);
+  margin-right: 4px;
+}
