@@ -371,7 +371,7 @@
   }
 
   /**
-   * Fast Same-Origin Transcript Fetching with Automatic Retry Limit
+   * Fast Same-Origin Transcript Fetching (Instant resolution, zero artificial delays)
    */
   async function fetchTranscript(videoId) {
     if (!panelContainer || !document.contains(panelContainer)) {
@@ -379,7 +379,7 @@
       return;
     }
 
-    // Guard: already resolved for this video or navigated away
+    // Stop if already resolved for this video or navigated away
     if (transcriptLoadedForVideoId === videoId || videoId !== currentVideoId) {
       return;
     }
@@ -391,9 +391,8 @@
     }
 
     isLoadingTranscript = true;
-    console.log(`[Captionary] Fetching transcript (attempt ${fetchRetryCount + 1}/${MAX_FETCH_RETRIES + 1}) for videoId:`, videoId);
+    console.log("[Captionary] Fetching transcript for videoId:", videoId);
 
-    // Only set loading spinner if not already showing it
     if (!contentArea.querySelector(".lt-loading-state")) {
       contentArea.innerHTML = `
         <div class="lt-loading-state">
@@ -404,7 +403,7 @@
     }
 
     try {
-      // 1. Direct same-origin fetch to YouTube InnerTube player endpoint
+      // Direct same-origin fetch to YouTube InnerTube player endpoint
       const playerPromise = fetch("/youtubei/v1/player", {
         method: "POST",
         headers: {
@@ -424,9 +423,9 @@
         return r.json();
       });
 
-      // 6-second timeout per attempt
+      // 4-second timeout limit
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out (6s)")), 6000)
+        setTimeout(() => reject(new Error("Request timed out")), 4000)
       );
 
       const playerData = await Promise.race([playerPromise, timeoutPromise]);
@@ -435,28 +434,15 @@
 
       console.log("[Captionary] Player response received. Tracks found:", captionTracks.length);
 
+      // Instant check: If video has no captions, show empty message IMMEDIATELY without delay
       if (!captionTracks.length) {
-        // If retries remain, wait 1 second and retry
-        if (fetchRetryCount < MAX_FETCH_RETRIES) {
-          fetchRetryCount++;
-          console.log(`[Captionary] No caption tracks found yet. Retrying (${fetchRetryCount}/${MAX_FETCH_RETRIES}) in 1s...`);
-          setTimeout(() => {
-            if (currentVideoId === videoId && !transcriptSegments.length) {
-              fetchTranscript(videoId);
-            }
-          }, 1000);
-          return;
-        }
-
-        // Retries exhausted: video has no captions
         isLoadingTranscript = false;
-        transcriptLoadedForVideoId = videoId; // Crucial: prevents watchdog loop!
+        transcriptLoadedForVideoId = videoId; // Crucial: marks video as resolved, stops watchdog
         updateTrackBadge(null);
         showEmptyState(
-          "No transcript available for this video",
-          "Subtitles or transcript are disabled or not provided for this video.",
+          "No transcript available",
+          "Subtitles or transcript are disabled for this video.",
           () => {
-            fetchRetryCount = 0;
             transcriptLoadedForVideoId = null;
             fetchTranscript(videoId);
           }
@@ -464,9 +450,7 @@
         return;
       }
 
-      // Success! Found tracks
-      fetchRetryCount = 0;
-
+      // Caption tracks available
       availableTracks = captionTracks.map((t) => ({
         name: t.name?.runs?.[0]?.text || t.name?.simpleText || t.languageCode,
         languageCode: t.languageCode,
@@ -492,27 +476,13 @@
       updateTrackBadge(selected);
       await loadTimedTextDirect(selected.baseUrl, videoId);
     } catch (err) {
-      console.warn("[Captionary] Fetch attempt error:", err);
-
-      if (fetchRetryCount < MAX_FETCH_RETRIES) {
-        fetchRetryCount++;
-        console.log(`[Captionary] Retrying after error (${fetchRetryCount}/${MAX_FETCH_RETRIES}) in 1s...`);
-        setTimeout(() => {
-          if (currentVideoId === videoId && !transcriptSegments.length) {
-            fetchTranscript(videoId);
-          }
-        }, 1000);
-        return;
-      }
-
-      // Retries exhausted
+      console.warn("[Captionary] Fetch error:", err);
       isLoadingTranscript = false;
-      transcriptLoadedForVideoId = videoId; // Crucial: prevents watchdog loop!
+      transcriptLoadedForVideoId = videoId;
       showEmptyState(
-        "No transcript available for this video",
-        "Could not load subtitles for this video.",
+        "No transcript available",
+        "Subtitles or transcript could not be loaded for this video.",
         () => {
-          fetchRetryCount = 0;
           transcriptLoadedForVideoId = null;
           fetchTranscript(videoId);
         }
