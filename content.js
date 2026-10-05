@@ -24,6 +24,8 @@
   let userScrollTimeout = null;
   let isLoadingTranscript = false;
   let transcriptLoadedForVideoId = null;
+  let fetchRetryCount = 0;
+  const MAX_FETCH_RETRIES = 2; // 0, 1, 2 = 3 total attempts
 
   let currentSettings = {
     targetLanguage: "hi",
@@ -92,7 +94,12 @@
               fetchTranscript(vid);
             }
           });
-        } else if (transcriptSegments.length === 0 && !isLoadingTranscript && transcriptLoadedForVideoId !== vid) {
+        } else if (
+          transcriptSegments.length === 0 &&
+          !isLoadingTranscript &&
+          transcriptLoadedForVideoId !== vid &&
+          fetchRetryCount <= MAX_FETCH_RETRIES
+        ) {
           fetchTranscript(vid);
         }
       }
@@ -136,6 +143,7 @@
       currentVideoId = vid;
       transcriptSegments = [];
       transcriptLoadedForVideoId = null;
+      fetchRetryCount = 0;
       activeSegmentIndex = -1;
       ensureSetup(vid);
     }
@@ -327,6 +335,16 @@
       chipSaved.classList.remove("lt-active");
       if (transcriptSegments.length) {
         renderTranscript(transcriptSegments);
+      } else if (transcriptLoadedForVideoId === currentVideoId) {
+        showEmptyState(
+          "No transcript available for this video",
+          "Subtitles or transcript are disabled or not provided for this video.",
+          () => {
+            fetchRetryCount = 0;
+            transcriptLoadedForVideoId = null;
+            fetchTranscript(currentVideoId);
+          }
+        );
       } else {
         fetchTranscript(currentVideoId);
       }
@@ -353,11 +371,16 @@
   }
 
   /**
-   * Fast Same-Origin Transcript Fetching (<1 second)
+   * Fast Same-Origin Transcript Fetching with Automatic Retry Limit
    */
   async function fetchTranscript(videoId) {
     if (!panelContainer || !document.contains(panelContainer)) {
       mountPanel(() => fetchTranscript(videoId));
+      return;
+    }
+
+    // Guard: already resolved for this video or navigated away
+    if (transcriptLoadedForVideoId === videoId || videoId !== currentVideoId) {
       return;
     }
 
@@ -368,14 +391,17 @@
     }
 
     isLoadingTranscript = true;
-    console.log("[Captionary] Fetching transcript for videoId:", videoId);
+    console.log(`[Captionary] Fetching transcript (attempt ${fetchRetryCount + 1}/${MAX_FETCH_RETRIES + 1}) for videoId:`, videoId);
 
-    contentArea.innerHTML = `
-      <div class="lt-loading-state">
-        <div class="lt-spinner"></div>
-        <div style="font-size: 13px; font-weight: 500;">Loading transcript...</div>
-      </div>
-    `;
+    // Only set loading spinner if not already showing it
+    if (!contentArea.querySelector(".lt-loading-state")) {
+      contentArea.innerHTML = `
+        <div class="lt-loading-state">
+          <div class="lt-spinner"></div>
+          <div style="font-size: 13px; font-weight: 500;">Loading transcript...</div>
+        </div>
+      `;
+    }
 
     try {
       // 1. Direct same-origin fetch to YouTube InnerTube player endpoint
@@ -398,9 +424,9 @@
         return r.json();
       });
 
-      // 8-second timeout
+      // 6-second timeout per attempt
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out (8s)")), 8000)
+        setTimeout(() => reject(new Error("Request timed out (6s)")), 6000)
       );
 
       const playerData = await Promise.race([playerPromise, timeoutPromise]);
@@ -410,14 +436,36 @@
       console.log("[Captionary] Player response received. Tracks found:", captionTracks.length);
 
       if (!captionTracks.length) {
+        // If retries remain, wait 1 second and retry
+        if (fetchRetryCount < MAX_FETCH_RETRIES) {
+          fetchRetryCount++;
+          console.log(`[Captionary] No caption tracks found yet. Retrying (${fetchRetryCount}/${MAX_FETCH_RETRIES}) in 1s...`);
+          setTimeout(() => {
+            if (currentVideoId === videoId && !transcriptSegments.length) {
+              fetchTranscript(videoId);
+            }
+          }, 1000);
+          return;
+        }
+
+        // Retries exhausted: video has no captions
         isLoadingTranscript = false;
-        showEmptyState(
-          "No transcript available",
-          "Subtitles or transcript are disabled for this video."
-        );
+        transcriptLoadedForVideoId = videoId; // Crucial: prevents watchdog loop!
         updateTrackBadge(null);
+        showEmptyState(
+          "No transcript available for this video",
+          "Subtitles or transcript are disabled or not provided for this video.",
+          () => {
+            fetchRetryCount = 0;
+            transcriptLoadedForVideoId = null;
+            fetchTranscript(videoId);
+          }
+        );
         return;
       }
+
+      // Success! Found tracks
+      fetchRetryCount = 0;
 
       availableTracks = captionTracks.map((t) => ({
         name: t.name?.runs?.[0]?.text || t.name?.simpleText || t.languageCode,
@@ -444,12 +492,30 @@
       updateTrackBadge(selected);
       await loadTimedTextDirect(selected.baseUrl, videoId);
     } catch (err) {
-      console.error("[Captionary] Fast fetch error:", err);
+      console.warn("[Captionary] Fetch attempt error:", err);
+
+      if (fetchRetryCount < MAX_FETCH_RETRIES) {
+        fetchRetryCount++;
+        console.log(`[Captionary] Retrying after error (${fetchRetryCount}/${MAX_FETCH_RETRIES}) in 1s...`);
+        setTimeout(() => {
+          if (currentVideoId === videoId && !transcriptSegments.length) {
+            fetchTranscript(videoId);
+          }
+        }, 1000);
+        return;
+      }
+
+      // Retries exhausted
       isLoadingTranscript = false;
-      showErrorState(
-        "Could not load transcript",
-        err.message || "Failed to load subtitles.",
-        () => fetchTranscript(videoId)
+      transcriptLoadedForVideoId = videoId; // Crucial: prevents watchdog loop!
+      showEmptyState(
+        "No transcript available for this video",
+        "Could not load subtitles for this video.",
+        () => {
+          fetchRetryCount = 0;
+          transcriptLoadedForVideoId = null;
+          fetchTranscript(videoId);
+        }
       );
     }
   }
@@ -769,15 +835,20 @@
     }
   }
 
-  function showEmptyState(title, subtitle) {
+  function showEmptyState(title, subtitle, retryFn) {
     if (!contentArea) return;
     contentArea.innerHTML = `
       <div class="lt-empty-state">
-        <div style="font-size: 24px; margin-bottom: 8px;">💬</div>
-        <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px; color: var(--yt-trans-text-primary);">${title}</div>
-        <div style="font-size: 12px; color: var(--yt-trans-text-muted);">${subtitle}</div>
+        <div style="font-size: 28px; margin-bottom: 8px; opacity: 0.85;">💬</div>
+        <div style="font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--yt-trans-text-primary);">${title}</div>
+        <div style="font-size: 12px; color: var(--yt-trans-text-muted); line-height: 1.4; max-width: 260px; margin: 0 auto 14px;">${subtitle}</div>
+        ${retryFn ? `<button class="lt-retry-btn" id="lt-empty-retry-btn">Check Again</button>` : ""}
       </div>
     `;
+    const btn = contentArea.querySelector("#lt-empty-retry-btn");
+    if (btn && retryFn) {
+      btn.addEventListener("click", retryFn);
+    }
   }
 
   function showErrorState(title, subtitle, retryFn) {
